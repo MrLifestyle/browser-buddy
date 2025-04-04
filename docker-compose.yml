@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ./run.sh api --api-port 8000
+    volumes:
+      - ./output:/app/output
+    ports:
+      - "8000:8000"
+    environment:
+      - API_PORT=8000
+      - API_HOST=0.0.0.0
+      - DEFAULT_LLM_MODEL=mistral-openorca
+      # Add other environment variables from .env here
+    networks:
+      - browser-buddy-network
+
+  # Web UI
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ./run.sh ui --ui-port 8080 --api-port 8000
+    volumes:
+      - ./output:/app/output
+    ports:
+      - "8080:8080"
+    environment:
+      - UI_PORT=8080
+      - UI_HOST=0.0.0.0
+      - BROWSER_BUDDY_API_PORT=8000
+    depends_on:
+      - api
+    networks:
+      - browser-buddy-network
+
+  # Ollama LLM Service (optional)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - browser-buddy-network
+
+networks:
+  browser-buddy-network:
+
+volumes:
+  ollama-data:
